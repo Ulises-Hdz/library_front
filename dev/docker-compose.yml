@@ -1,0 +1,28 @@
+services:
+  library_frontend:
+    container_name: library_frontend
+    build:
+      context: ../
+      dockerfile: dev.Dockerfile
+    restart: always
+    volumes:
+      - ../:/app/
+    command:
+      [
+        "/bin/sh",
+        "-c",
+        "npm install --legacy-peer-deps && ng serve --host 0.0.0.0 --port 4210 --allowed-hosts=true"
+      ]
+    ports:
+      - 4210:4210
+
+  library_mongo:
+    environment:
+      - "TZ=America/Mexico_City"
+    container_name: library_mongo
+    image: mongo:5.0.0-rc3-focal
+    restart: always
+    ports:
+      - 27018:27017
+    volumes:
+      - ../data/mongo/data:/data/db
