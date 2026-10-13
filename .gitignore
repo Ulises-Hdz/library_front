@@ -6,6 +6,7 @@
 /out-tsc
 /bazel-out
 /data
+/src/environments
 
 # Node
 /node_modules
