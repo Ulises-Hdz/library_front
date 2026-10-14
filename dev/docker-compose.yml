@@ -26,3 +26,20 @@ services:
       - 27018:27017
     volumes:
       - ../data/mongo/data:/data/db
+
+  library_back:
+    container_name: library_back
+    build:
+      context: https://github.com/Ulises-Hdz/library_back.git#main
+      dockerfile: dev.Dockerfile
+    restart: always
+    environment:
+      - PORT=${BACK_PORT:-3000}
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET:?Falta JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-2h}
+    depends_on:
+      - library_mongo
+    command: ["npm", "run", "start:dev"]
+    ports:
+      - 3000:3000
