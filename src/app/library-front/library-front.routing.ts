@@ -10,7 +10,7 @@ export const libraryFrontRoutes: Routes = [
     component: LibraryFrontLayoutComponent,
     children: [
       {
-        path: '',
+        path: 'home',
         component: HomePageComponent
       },
       {
