@@ -10,6 +10,11 @@ export const libraryFrontRoutes: Routes = [
     component: LibraryFrontLayoutComponent,
     children: [
       {
+        path: '',
+        redirectTo: 'home',
+        pathMatch: 'full'
+      },
+      {
         path: 'home',
         component: HomePageComponent
       },
@@ -29,7 +34,7 @@ export const libraryFrontRoutes: Routes = [
   },
   {
     path: '**',
-    redirectTo: ''
+    redirectTo: 'home'
   }
 ];
 
