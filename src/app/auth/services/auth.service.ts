@@ -3,18 +3,27 @@ import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { catchError, map, of } from 'rxjs';
 
+export interface UserItem {
+  _id:	string,
+  full_name: string,
+  email: string,
+  role: string,
+  status: string
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
   private _authStatus = ('checking');
-  private _user = null;
+  private _user = signal<UserItem|null>(null);
   private _token = signal<string | null>(localStorage.getItem('token'));
 
   private http = inject(HttpClient);
 
-  token = computed(() => this._token());
+  token = computed(this._token);
+  user = computed(() => this._user());
 
   login(email: string, password: string) {
     return this.http.post(`${environment.baseUrl}/auth/login` , {
@@ -52,7 +61,7 @@ export class AuthService {
   }
 
   logout() {
-    this._user = null;
+    this._user.set(null);
     this._token.set(null);
     this._authStatus = 'not-authenticated';
     
