@@ -1,14 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, input } from '@angular/core';
+import { BookItem } from '../../../library-front/pages/books-page/books-page.component';
 
 @Component({
   selector: 'app-book-card',
   templateUrl: './book-card.component.html',
 })
-export class BookCardComponent implements OnInit {
+export class BookCardComponent {
 
-  constructor() { }
-
-  ngOnInit() {
-  }
-
+  book = input.required<BookItem>();
+  
 }
