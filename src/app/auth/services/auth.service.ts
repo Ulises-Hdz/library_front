@@ -1,7 +1,10 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, map, of } from 'rxjs';
+import { rxResource } from '@angular/core/rxjs-interop';
+
+type AuthStatus = 'checking' | 'authenticated' | 'not-authenticated'
 
 export interface UserItem {
   _id:	string,
@@ -11,12 +14,14 @@ export interface UserItem {
   status: string
 }
 
+type AuthResponse = { token: string , user: UserItem}
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  private _authStatus = ('checking');
+  private _authStatus = signal<AuthStatus>('checking');
   private _user = signal<UserItem|null>(null);
   private _token = signal<string | null>(localStorage.getItem('token'));
 
@@ -25,24 +30,40 @@ export class AuthService {
   token = computed(this._token);
   user = computed(() => this._user());
 
+  checkStatusResource = rxResource({
+    stream: () => this.checkStatus()
+  })
+
+  authStatus = computed<AuthStatus>(() => {
+    if(this._authStatus() === 'checking') return 'checking'
+
+    if(this._user()) return 'authenticated';
+
+    return 'not-authenticated'
+  });
+
+  constructor() {
+    this.checkStatusResource.value();
+  }
+
   login(email: string, password: string) {
-    return this.http.post(`${environment.baseUrl}/auth/login` , {
+    return this.http.post<AuthResponse>(`${environment.baseUrl}/auth/login` , {
       email,
       password
     }).pipe(
-        map((resp: any) => this.handleAuthSuccess(resp)),
-        catchError((error: any) => this.handleAuthError(error))
+        map((resp) => this.handleAuthSuccess(resp)),
+        catchError((error: unknown) => this.handleAuthError(error))
     )
   }
 
   register(email: string, password: string, full_name: string) {
-    return this.http.post(`${environment.baseUrl}/auth/register`, {
+    return this.http.post<AuthResponse>(`${environment.baseUrl}/auth/register`, {
       email,
       password,
       full_name,
     }).pipe(
-        map((resp: any) => this.handleAuthSuccess(resp)),
-        catchError((error: any) => this.handleAuthError(error))
+        map((resp) => this.handleAuthSuccess(resp)),
+        catchError((error: unknown) => this.handleAuthError(error))
     )
   }
 
@@ -53,17 +74,22 @@ export class AuthService {
       return of(false)
     }
 
-    return this.http.get(`${environment.baseUrl}/auth/profile`, {
-    }).pipe(
-        map(resp => this.handleAuthSuccess(resp)),
-        catchError((error: any) => this.handleAuthError(error))
+    return this.http.get<AuthResponse>(`${environment.baseUrl}/auth/profile`).pipe(
+        map((resp) => this.handleAuthSuccess({ ...resp, token: resp.token ?? token })),
+        catchError((error: HttpErrorResponse) => {
+          // Solo se cierra sesión si el token es inválido; errores de red/servidor la conservan.
+          if (error.status === 401 || error?.status === 403) {
+            return this.handleAuthError(error);
+          }
+          return of(false);
+        })
     )
   }
 
   logout() {
     this._user.set(null);
     this._token.set(null);
-    this._authStatus = 'not-authenticated';
+    this._authStatus.set('not-authenticated');
     
     localStorage.removeItem('token');
   }
@@ -71,17 +97,16 @@ export class AuthService {
     return !!this._token();
   }
 
-  private handleAuthSuccess(resp: any) {
-    this._user = resp.user;
-    this._authStatus = 'authenticated';
-    if (resp.token) {
-      this._token.set(resp.token);
-      localStorage.setItem('token', resp.token);
-    }
+  private handleAuthSuccess({token , user}: AuthResponse) {
+    this._user.set(user);
+    this._authStatus.set('authenticated');
+    this._token.set(token);
+
+    localStorage.setItem('token', token);
     return true;
   }
 
-  private handleAuthError(error: any) {
+  private handleAuthError(_error: unknown) {
     this.logout();
     return of(false);
   }

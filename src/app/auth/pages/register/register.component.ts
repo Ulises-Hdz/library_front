@@ -1,6 +1,7 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -25,27 +26,27 @@ export class RegisterComponent {
 
   onSubmit() {
     if( this.registerForm.invalid ) {
-      this.hasError = true;
-      setTimeout( () => {
-        this.hasError = false;
-      }, 2000)
-      return ;
+      this.showError();
+      return;
     }
     const {email = '' , password = '', full_name = ''} = this.registerForm.value;
 
+    this.isPosting = true;
     this.authService
     .register(email!, password!, full_name!)
+    .pipe(finalize(() => (this.isPosting = false)))
     .subscribe((isAuthenticated) => {
-      if( isAuthenticated) {
-        this.router.navigateByUrl('/')
+      if (isAuthenticated) {
+        this.router.navigateByUrl('/home')
         return;
       }
 
-      this.hasError = true;
-      setTimeout( () => {
-        this.hasError = false;
-      }, 2000);
+      this.showError();
     })
   }
 
+  private showError() {
+    this.hasError = true;
+    setTimeout(() => (this.hasError = false), 2000);
+  }
 }

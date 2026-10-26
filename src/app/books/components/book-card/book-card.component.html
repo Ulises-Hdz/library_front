@@ -10,7 +10,7 @@
     <p class="text-sm text-slate-500">{{ book().author }}</p>
     <p class="line-clamp-3">{{ book().description }}</p>
     <div class="card-actions justify-end">
-      <button class="btn btn-primary">Ver detalle</button>
+      <button class="btn btn-primary" type="button" (click)="openDetails()">Ver detalle</button>
     </div>
   </div>
 </div>

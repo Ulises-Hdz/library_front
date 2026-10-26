@@ -4,19 +4,7 @@ import { BookFilters, SearchBarComponent } from '../../components/search-bar/sea
 import { BookQuery, BookService } from '../../../books/services/book.service';
 import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
-export interface BookItem {
-  _id: string,
-  isbn: string,
-  title:	string;
-  author:	string
-  publisher: string
-  publicationYear: number
-  categories: string,
-  coverUrl: string,
-  description: string,
-}
-
+import { BookItem } from '../../../books/models/book.model';
 
 @Component({
   selector: 'app-books-page',
