@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { BookItem } from '../../../../../books/models/book.model';
+import { BookService } from '../../../../../books/services/book.service';
 
 
 @Component({
@@ -15,6 +16,7 @@ import { BookItem } from '../../../../../books/models/book.model';
 export class BookModalComponent {
   readonly book = inject<BookItem>(DIALOG_DATA);
   private readonly dialogRef = inject<DialogRef<void>>(DialogRef);
+  private readonly booksService = inject(BookService);
 
   close() {
     this.dialogRef.close();

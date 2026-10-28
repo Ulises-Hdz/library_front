@@ -13,9 +13,12 @@ export class BookService {
   getBooks<T = BookItem[]>(filters: BookQuery = {}) {
     let params = new HttpParams();
 
-    if (filters.title) params = params.set('title', filters.title);
-    if (filters.author) params = params.set('author', filters.author);
+    if (filters.title)    params = params.set('title', filters.title);
+    if (filters.author)   params = params.set('author', filters.author);
     if (filters.category) params = params.set('category', filters.category);
+
+    if (filters.limit != null)  params = params.set('limit', filters.limit);
+    if (filters.offset != null) params = params.set('offset', filters.offset);
 
     return this.http.get<T>(`${environment.baseUrl}/books`, { params });
   }
@@ -29,4 +32,6 @@ export interface BookQuery {
   title?: string;
   author?: string;
   category?: string;
+  limit?: number;
+  offset?: number;
 }

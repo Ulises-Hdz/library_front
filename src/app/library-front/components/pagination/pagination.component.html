@@ -1,0 +1,36 @@
+<div class="flex justify-center py-8">
+  <div class="join">
+    <!-- Botón Anterior -->
+    <button
+      class="join-item btn"
+      [class.btn-disabled]="currentPage() === 1"
+      [disabled]="currentPage() === 1"
+      (click)="goToPage(currentPage() - 1)">
+      «
+    </button>
+
+    <!-- Números de página -->
+    @for (page of visiblePages(); track $index) {
+      @if (page === '...') {
+        <button class="join-item btn btn-disabled" disabled>…</button>
+      } @else {
+        <button
+          class="join-item btn"
+          [class.btn-active]="page === currentPage()"
+          (click)="goToPage(page)">
+          {{ page }}
+        </button>
+      }
+    }
+
+    <!-- Botón Siguiente -->
+    <button
+      class="join-item btn"
+      [class.btn-disabled]="!hasNextPage()"
+      [disabled]="!hasNextPage()"
+      (click)="goToPage(currentPage() + 1)">
+      »
+    </button>
+  </div>
+</div>
+

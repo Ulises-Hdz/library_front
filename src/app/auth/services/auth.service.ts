@@ -1,8 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { catchError, map, of } from 'rxjs';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { catchError, map, Observable, of, tap } from 'rxjs';
 
 type AuthStatus = 'checking' | 'authenticated' | 'not-authenticated'
 
@@ -29,21 +28,11 @@ export class AuthService {
 
   token = computed(this._token);
   user = computed(() => this._user());
-
-  checkStatusResource = rxResource({
-    stream: () => this.checkStatus()
-  })
-
-  authStatus = computed<AuthStatus>(() => {
-    if(this._authStatus() === 'checking') return 'checking'
-
-    if(this._user()) return 'authenticated';
-
-    return 'not-authenticated'
-  });
+  authStatus = computed(() => this._authStatus());
 
   constructor() {
-    this.checkStatusResource.value();
+    // Al iniciar el servicio, verificar si hay una sesión válida
+    this.checkStatus().subscribe();
   }
 
   login(email: string, password: string) {
@@ -67,20 +56,23 @@ export class AuthService {
     )
   }
 
-  checkStatus() {
+  checkStatus(): Observable<boolean> {
     const token = localStorage.getItem('token');
+
     if(!token) {
-      this.logout()
-      return of(false)
+      this.logout();
+      return of(false);
     }
 
     return this.http.get<AuthResponse>(`${environment.baseUrl}/auth/profile`).pipe(
         map((resp) => this.handleAuthSuccess({ ...resp, token: resp.token ?? token })),
         catchError((error: HttpErrorResponse) => {
           // Solo se cierra sesión si el token es inválido; errores de red/servidor la conservan.
-          if (error.status === 401 || error?.status === 403) {
+          if (error.status === 401 || error.status === 403) {
             return this.handleAuthError(error);
           }
+          // Error de red: mantener la sesión como estaba si hay token
+          this._authStatus.set('authenticated');
           return of(false);
         })
     )
@@ -90,17 +82,18 @@ export class AuthService {
     this._user.set(null);
     this._token.set(null);
     this._authStatus.set('not-authenticated');
-    
+
     localStorage.removeItem('token');
   }
+
   get isAuthenticated(): boolean {
-    return !!this._token();
+    return this._authStatus() === 'authenticated';
   }
 
   private handleAuthSuccess({token , user}: AuthResponse) {
     this._user.set(user);
-    this._authStatus.set('authenticated');
     this._token.set(token);
+    this._authStatus.set('authenticated');
 
     localStorage.setItem('token', token);
     return true;
