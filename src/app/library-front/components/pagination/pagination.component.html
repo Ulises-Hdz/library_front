@@ -1,0 +1,37 @@
+<div class="flex justify-center py-8 border-t border-slate-200">
+  <div class="join">
+    <!-- Botón Anterior -->
+    <button
+      class="join-item btn"
+      [class.btn-disabled]="currentPage() === 1"
+      [disabled]="currentPage() === 1"
+      (click)="goToPage(currentPage() - 1)">
+      «
+    </button>
+
+    <!-- Números de página -->
+    @for (page of visiblePages(); track $index) {
+      @if (page === '...') {
+        <button class="join-item btn btn-disabled" disabled>…</button>
+      } @else {
+        <button
+          class="join-item btn px-4 py-2"
+          [class.btn-primary]="page === currentPage()"
+          [attr.aria-current]="page === currentPage() ? 'page' : null"
+          (click)="goToPage(page)">
+          {{ page }}
+        </button>
+      }
+    }
+
+    <!-- Botón Siguiente -->
+    <button
+      class="join-item btn"
+      [class.btn-disabled]="!hasNextPage()"
+      [disabled]="!hasNextPage()"
+      (click)="goToPage(currentPage() + 1)">
+      »
+    </button>
+  </div>
+</div>
+

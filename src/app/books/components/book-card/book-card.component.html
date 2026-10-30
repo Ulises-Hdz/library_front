@@ -1,16 +1,17 @@
-<div class="card bg-base-100 w-full h-full shadow-sm">
-  <figure class="aspect-[3/4] bg-base-200">
+<div class="card bg-base-100 w-full h-full shadow-sm hover:shadow-lg transition-shadow duration-300 group overflow-hidden">
+  <figure class="relative aspect-[2/3] bg-base-200 overflow-hidden">
     <img
-      class="w-full h-full object-cover"
+      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
       [src]="book().coverUrl"
-      [alt]="book().title" />
+      [alt]="book().title"
+      loading="lazy" />
   </figure>
-  <div class="card-body">
-    <h2 class="card-title">{{ book().title }}</h2>
+  <div class="card-body p-4">
+    <h2 class="card-title text-base line-clamp-2">{{ book().title }}</h2>
     <p class="text-sm text-slate-500">{{ book().author }}</p>
-    <p class="line-clamp-3">{{ book().description }}</p>
-    <div class="card-actions justify-end">
-      <button class="btn btn-primary">Ver detalle</button>
+    <p class="text-sm text-slate-400 line-clamp-2">{{ book().description }}</p>
+    <div class="card-actions justify-end mt-2">
+      <button class="btn btn-primary btn-sm" type="button" (click)="openDetails()">Ver detalle</button>
     </div>
   </div>
 </div>
