@@ -10,25 +10,36 @@
 <!-- Info de página -->
 <div class="max-w-7xl mx-auto px-4 md:px-8 pt-6 pb-2 flex items-center justify-between">
   <p class="text-sm text-slate-500">
-    Mostrando {{ books().length }} libro{{ books().length !== 1 ? 's' : '' }}
+    @if (books().length > 0) {
+      Mostrando {{ rangeStart() }} a {{ rangeEnd() }}
+    } @else {
+      Sin resultados
+    }
   </p>
   <p class="text-sm text-slate-400">
     Página {{ currentPage() }}
   </p>
 </div>
 
-<!-- Grid de libros -->
-<section class="max-w-7xl mx-auto px-4 md:px-8 pb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-  @for (book of books(); track book._id) {
-    <app-book-card [book]="book" />
-  } @empty {
-    <p class="col-span-full text-center text-slate-500 py-12">No se encontraron libros.</p>
-  }
-</section>
+@if (isLoading()) {
+  <!-- Loading centrado -->
+  <div class="flex justify-center items-center min-h-[40vh]" role="status" aria-label="Cargando libros">
+    <span class="loading loading-spinner loading-xl text-primary"></span>
+  </div>
+} @else {
+  <!-- Grid de libros -->
+  <section class="max-w-7xl mx-auto px-4 md:px-8 pb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    @for (book of books(); track book._id) {
+      <app-book-card [book]="book" />
+    } @empty {
+      <p class="col-span-full text-center text-slate-500 py-12">No se encontraron libros.</p>
+    }
+  </section>
+}
 
 <!-- Paginación -->
-@if (books().length > 0 || currentPage() > 1) {
-  <div class="max-w-7xl mx-auto px-4 md:px-8">
+@if (!isLoading() && totalPages() > 1) {
+  <div class="max-w-7xl mx-auto px-4 md:px-8 mt-8">
     <app-pagination
       [currentPage]="currentPage()"
       [hasNextPage]="hasNextPage()"

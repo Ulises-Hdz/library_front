@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { BookCardComponent } from '../../../books/components/book-card/book-card.component';
 import { BookFilters, SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { BookQuery, BookService } from '../../../books/services/book.service';
@@ -31,6 +31,26 @@ export class BooksPageComponent implements OnInit {
   /** Libros por página */
   readonly pageSize = 8;
 
+  isLoading = signal(true);
+
+  /**
+   * Total de páginas conocidas.
+   * Como la API no devuelve un total, calculamos basándonos en lo que sabemos:
+   * si hay siguiente página, al menos hay currentPage + 1; si no, currentPage es la última.
+   */
+  totalPages = computed(() => {
+    if (this.hasNextPage()) return this.currentPage() + 1;
+    // Si estamos en la página 1 y no hay libros, hay 0 páginas (no mostrar paginación)
+    if (this.currentPage() === 1 && this.books().length === 0) return 1;
+    return this.currentPage();
+  });
+
+  /** Índice del primer libro mostrado (base 1) */
+  rangeStart = computed(() => (this.currentPage() - 1) * this.pageSize + 1);
+
+  /** Índice del último libro mostrado (base 1) */
+  rangeEnd = computed(() => this.rangeStart() + this.books().length - 1);
+
   /** Subject que combina filtros + página para hacer una sola petición */
   private readonly pageRequest$ = new Subject<PageRequest>();
 
@@ -56,9 +76,11 @@ export class BooksPageComponent implements OnInit {
             limit: this.pageSize + 1, // Pedimos 1 extra para saber si hay siguiente
             offset,
           };
+          this.isLoading.set(true);
           return this.booksService.getBooks<BookItem[]>(query).pipe(
             catchError((error: unknown) => {
               console.error('No se pudieron cargar los libros.', error);
+              this.isLoading.set(false);
               return EMPTY;
             }),
           );
@@ -66,9 +88,8 @@ export class BooksPageComponent implements OnInit {
         takeUntilDestroyed(),
       )
       .subscribe((books) => {
-        // Si recibimos más de pageSize, hay página siguiente
+        this.isLoading.set(false);
         this.hasNextPage.set(books.length > this.pageSize);
-        // Mostrar solo los del pageSize (quitar el extra)
         this.books.set(books.slice(0, this.pageSize));
       });
   }
@@ -86,6 +107,7 @@ export class BooksPageComponent implements OnInit {
   onPageChange(page: number) {
     this.currentPage.set(page);
     this.emitRequest(this.lastFilters, page);
+    // Scroll suave al inicio para que el alumno vea los resultados desde arriba
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 

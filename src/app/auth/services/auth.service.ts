@@ -64,14 +64,20 @@ export class AuthService {
       return of(false);
     }
 
-    return this.http.get<AuthResponse>(`${environment.baseUrl}/auth/profile`).pipe(
-        map((resp) => this.handleAuthSuccess({ ...resp, token: resp.token ?? token })),
+    // /auth/profile devuelve { id, email, role, full_name }; se mezcla con el usuario guardado para conservar el resto de campos.
+    return this.http.get<Partial<UserItem> & { id?: string }>(`${environment.baseUrl}/auth/profile`).pipe(
+        map((profile) => {
+          const cached = this.readStoredUser();
+          const user = { ...cached, ...profile, _id: profile._id ?? profile.id ?? cached?._id } as UserItem;
+          return this.handleAuthSuccess({ token, user });
+        }),
         catchError((error: HttpErrorResponse) => {
           // Solo se cierra sesión si el token es inválido; errores de red/servidor la conservan.
           if (error.status === 401 || error.status === 403) {
             return this.handleAuthError(error);
           }
           // Error de red: mantener la sesión como estaba si hay token
+          this._user.set(this.readStoredUser());
           this._authStatus.set('authenticated');
           return of(false);
         })
@@ -84,6 +90,7 @@ export class AuthService {
     this._authStatus.set('not-authenticated');
 
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
   }
 
   get isAuthenticated(): boolean {
@@ -96,7 +103,16 @@ export class AuthService {
     this._authStatus.set('authenticated');
 
     localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
     return true;
+  }
+
+  private readStoredUser(): UserItem | null {
+    try {
+      return JSON.parse(localStorage.getItem('user') ?? 'null');
+    } catch {
+      return null;
+    }
   }
 
   private handleAuthError(_error: unknown) {

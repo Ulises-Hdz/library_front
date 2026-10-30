@@ -1,4 +1,4 @@
-<div class="flex justify-center py-8">
+<div class="flex justify-center py-8 border-t border-slate-200">
   <div class="join">
     <!-- Botón Anterior -->
     <button
@@ -15,8 +15,9 @@
         <button class="join-item btn btn-disabled" disabled>…</button>
       } @else {
         <button
-          class="join-item btn"
-          [class.btn-active]="page === currentPage()"
+          class="join-item btn px-4 py-2"
+          [class.btn-primary]="page === currentPage()"
+          [attr.aria-current]="page === currentPage() ? 'page' : null"
           (click)="goToPage(page)">
           {{ page }}
         </button>
