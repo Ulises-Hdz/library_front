@@ -1,0 +1,115 @@
+<header class="bg-neutral w-full pt-20 pb-16 px-4 md:px-8 shadow-md">
+  <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+    <h1 class="text-neutral-content text-2xl font-bold">Control de Préstamos</h1>
+    <button (click)="openModal()"
+            class="px-5 py-2.5 bg-[#1E40AF] text-white text-sm font-semibold rounded-lg shadow-md hover:bg-blue-800 transition-colors flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+      Registrar préstamo
+    </button>
+  </div>
+</header>
+
+<div class="max-w-7xl mx-auto px-4 md:px-8 pb-8 -mt-8 relative z-20">
+  @if (message(); as m) {
+    <div class="mb-4 px-4 py-3 rounded-lg text-sm font-medium border"
+         [class.bg-green-50]="m.ok" [class.text-green-700]="m.ok" [class.border-green-200]="m.ok"
+         [class.bg-red-50]="!m.ok" [class.text-red-700]="!m.ok" [class.border-red-200]="!m.ok">
+      {{ m.text }}
+    </div>
+  }
+
+  <div>
+    <!-- Préstamos abiertos -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full min-h-[400px]">
+      <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <h3 class="font-bold text-slate-800 text-lg">Préstamos Abiertos</h3>
+        <span class="bg-[#14B8A6] text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+          {{ openLoans().length }} {{ openLoans().length === 1 ? 'préstamo' : 'préstamos' }}
+        </span>
+      </div>
+
+      <div class="p-4 flex-1 flex flex-col gap-3 overflow-y-auto">
+        @for (loan of openLoans(); track loan._id) {
+          <div class="flex items-center justify-between gap-3 p-4 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-[#14B8A6] transition-colors">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-full bg-blue-100 text-[#1E40AF] flex items-center justify-center font-bold text-sm">
+                {{ initials(loan.user_id) }}
+              </div>
+              <div>
+                <p class="text-sm font-bold text-slate-800">{{ userName(loan.user_id) }}</p>
+                <p class="text-xs text-slate-500 font-medium">Vence: {{ loan.dueDate | date: 'dd/MM/yyyy' }}</p>
+                @if (loan.status === 'OVERDUE') {
+                  <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">Vencido</span>
+                } @else {
+                  <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">Activo</span>
+                }
+              </div>
+            </div>
+            <button (click)="registerReturn(loan)"
+                    class="bg-green-100 text-green-700 hover:bg-green-600 hover:text-white px-4 py-2 rounded-md text-xs font-bold transition-colors border border-green-200 whitespace-nowrap">
+              Registrar devolución
+            </button>
+          </div>
+        } @empty {
+          <div class="flex-1 flex flex-col items-center justify-center text-slate-400 py-12">
+            <svg class="w-14 h-14 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <p class="text-sm font-medium">No hay préstamos abiertos</p>
+          </div>
+        }
+      </div>
+    </div>
+
+  </div>
+</div>
+
+@if (modalOpen()) {
+  <div class="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+      <header class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+        <h2 class="text-lg font-bold text-slate-800">Registrar préstamo manual</h2>
+        <button type="button" aria-label="Cerrar" class="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" [disabled]="saving()" (click)="modalOpen.set(false)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </header>
+
+      <div class="p-6">
+      <div class="flex flex-col gap-4">
+        <label class="flex flex-col">
+          <span class="form-label">Alumno</span>
+          <select class="form-input"
+                  [value]="selectedUser()" (change)="selectedUser.set($any($event.target).value)">
+            <option value="">Selecciona un alumno</option>
+            @for (u of students(); track u._id) {
+              <option [value]="u._id">{{ u.full_name }} — {{ u.email }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="flex flex-col">
+          <span class="form-label">Libro</span>
+          <select class="form-input"
+                  [value]="selectedBook()" (change)="selectedBook.set($any($event.target).value)">
+            <option value="">Selecciona un libro</option>
+            @for (b of books(); track b._id) {
+              <option [value]="b._id">{{ b.title }} — {{ b.author }}</option>
+            }
+          </select>
+        </label>
+
+        @if (modalError()) {
+          <p class="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{{ modalError() }}</p>
+        }
+      </div>
+
+      <div class="flex justify-end gap-2 mt-6">
+        <button (click)="modalOpen.set(false)" [disabled]="saving()"
+                class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">Cancelar</button>
+        <button (click)="saveManual()" [disabled]="!selectedUser() || !selectedBook() || saving()"
+                class="px-5 py-2 bg-[#1E40AF] text-white text-sm font-semibold rounded-lg hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+          {{ saving() ? 'Registrando...' : 'Registrar' }}
+        </button>
+      </div>
+      </div>
+    </div>
+  </div>
+}

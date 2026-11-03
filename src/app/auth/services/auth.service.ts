@@ -29,6 +29,7 @@ export class AuthService {
   token = computed(this._token);
   user = computed(() => this._user());
   authStatus = computed(() => this._authStatus());
+  isAdmin = computed(() => this._user()?.role?.toUpperCase() === 'ADMIN');
 
   constructor() {
     // Al iniciar el servicio, verificar si hay una sesión válida

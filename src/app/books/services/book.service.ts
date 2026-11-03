@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { BookItem } from '../models/book.model';
+import { ApiBook, BookItem, NewBook } from '../models/book.model';
 
 @Injectable({
   providedIn: 'root'
@@ -23,9 +23,22 @@ export class BookService {
     return this.http.get<T>(`${environment.baseUrl}/books`, { params });
   }
 
+  createBook(book: NewBook) {
+    return this.http.post<ApiBook>(`${environment.baseUrl}/books`, book);
+  }
+
+  updateBook(id: string, book: Partial<NewBook>) {
+    return this.http.patch<ApiBook>(`${environment.baseUrl}/books/${id}`, book);
+  }
+
+  deleteBook(id: string) {
+    return this.http.delete(`${environment.baseUrl}/books/${id}`);
+  }
+
   getOneBook(id: string) {
     return this.http.get<BookItem>(`${environment.baseUrl}/book/${id}`)
   }
+
 }
 
 export interface BookQuery {

@@ -44,3 +44,11 @@ export const notAuthenticatedGuard: CanActivateFn = () => {
   // No autenticado → dejar ver login/register
   return true;
 };
+
+// Solo usuarios con rol ADMIN acceden a las rutas administrativas.
+export const adminGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  return authService.isAdmin() ? true : router.createUrlTree(['/home']);
+};
