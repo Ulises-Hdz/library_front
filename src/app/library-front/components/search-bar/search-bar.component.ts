@@ -1,6 +1,6 @@
-import { Component, output } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
 export type BookSearchField = 'title' | 'author' | 'category';
 
@@ -11,10 +11,11 @@ export type BookSearchField = 'title' | 'author' | 'category';
 })
 export class SearchBarComponent {
   readonly filtersChanged = output<BookFilters>();
-  readonly filtersForm = new FormGroup({
-    search: new FormControl('', { nonNullable: true }),
-    searchBy: new FormControl<BookSearchField>('title', { nonNullable: true }),
-    category: new FormControl('', { nonNullable: true }),
+  fb = inject(FormBuilder);
+  readonly filtersForm = this.fb.nonNullable.group({
+    search: '',
+    searchBy: 'title' as BookSearchField,
+    category: '',
   });
 
   constructor() {
