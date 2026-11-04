@@ -1,5 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { UsersService } from '../../../../admin/services/users.service';
+import { ToastService } from '../../../../shared/toast/toast.service';
+import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
 import { UserItem } from '../../../../auth/services/auth.service';
 
 @Component({
@@ -8,6 +10,8 @@ import { UserItem } from '../../../../auth/services/auth.service';
 })
 export class UsersPageComponent {
   private usersService = inject(UsersService);
+  private toast = inject(ToastService);
+  private confirmDialog = inject(ConfirmDialogService);
 
   users = signal<UserItem[]>([]);
   search = signal('');
@@ -32,8 +36,23 @@ export class UsersPageComponent {
   toggleSanction(user: UserItem) {
     const blocking = user.status !== 'BLOCKED';
     const action = blocking ? 'Sancionar (bloquear)' : 'Reactivar';
-    if (!confirm(`¿${action} a ${user.full_name}?`)) return;
-    this.usersService.setUserStatus(user._id, blocking ? 'BLOCKED' : 'ACTIVE').subscribe(() => this.load());
+    this.confirmDialog
+      .confirm({
+        title: action,
+        message: `¿${action} a ${user.full_name}?`,
+        confirmText: blocking ? 'Sancionar' : 'Reactivar',
+        danger: blocking,
+      })
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.usersService.setUserStatus(user._id, blocking ? 'BLOCKED' : 'ACTIVE').subscribe({
+          next: () => {
+            this.toast.success(blocking ? 'Usuario sancionado.' : 'Usuario reactivado.');
+            this.load();
+          },
+          error: () => this.toast.error('No se pudo actualizar el usuario.'),
+        });
+      });
   }
 
   isRol(rol: string) {

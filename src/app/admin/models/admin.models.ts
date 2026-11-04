@@ -27,6 +27,14 @@ export interface Loan {
   status: 'ACTIVE' | 'RETURNED' | 'OVERDUE';
 }
 
+export interface MyLoan extends Omit<Loan, 'physical_item_id'> {
+  physical_item_id: {
+    _id: string;
+    barcode: string;
+    book_id: { _id: string; title: string; author: string; isbn: string } | null;
+  } | null;
+}
+
 export interface AdminStats {
   overdueStudents: number;
   activeLoans: number;

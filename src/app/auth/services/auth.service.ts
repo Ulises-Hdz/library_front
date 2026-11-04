@@ -26,7 +26,10 @@ export class AuthService {
 
   private http = inject(HttpClient);
 
+  private _authError = signal('');
+
   token = computed(this._token);
+  authError = computed(() => this._authError());
   user = computed(() => this._user());
   authStatus = computed(() => this._authStatus());
   isAdmin = computed(() => this._user()?.role?.toUpperCase() === 'ADMIN');
@@ -37,6 +40,7 @@ export class AuthService {
   }
 
   login(email: string, password: string) {
+    this._authError.set('');
     return this.http.post<AuthResponse>(`${environment.baseUrl}/auth/login` , {
       email,
       password
@@ -116,7 +120,10 @@ export class AuthService {
     }
   }
 
-  private handleAuthError(_error: unknown) {
+  private handleAuthError(error: unknown) {
+    if (error instanceof HttpErrorResponse && error.status === 403) {
+      this._authError.set('Tu cuenta está bloqueada. Contacta al personal de la biblioteca.');
+    }
     this.logout();
     return of(false);
   }

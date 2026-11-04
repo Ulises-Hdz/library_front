@@ -1,7 +1,47 @@
-<header class="bg-neutral w-full pt-20 pb-12 px-4 md:px-8 shadow-md">
-  <div class="max-w-3xl mx-auto text-center">
-    <h1 class="text-neutral-content text-2xl md:text-3xl font-bold mb-6">
-      Mis préstamos
-    </h1>
+<header class="bg-neutral w-full pt-20 pb-16 px-4 md:px-8 shadow-md">
+  <div class="max-w-5xl mx-auto">
+    <h1 class="text-neutral-content text-2xl md:text-3xl font-bold">Mis préstamos</h1>
   </div>
 </header>
+
+<div class="max-w-5xl mx-auto px-4 md:px-8 pb-8 -mt-8 relative z-20">
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500 tracking-wider">
+          <tr>
+            <th class="px-6 py-4">Libro</th>
+            <th class="px-6 py-4">Préstamo</th>
+            <th class="px-6 py-4">Vence</th>
+            <th class="px-6 py-4">Estado</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+          @for (loan of loans(); track loan._id) {
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="px-6 py-4">
+                <div class="font-bold text-slate-900">{{ loan.physical_item_id?.book_id?.title ?? 'Libro no disponible' }}</div>
+                <div class="text-xs text-slate-500">{{ loan.physical_item_id?.book_id?.author }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ loan.loanDate | date: 'dd/MM/yyyy' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap" [class.text-red-600]="loan.status === 'OVERDUE'" [class.font-semibold]="loan.status === 'OVERDUE'">
+                {{ loan.status === 'RETURNED' ? '—' : (loan.dueDate | date: 'dd/MM/yyyy') }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border" [class]="statusClasses(loan.status)">
+                  {{ statusLabel(loan.status) }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="px-6 py-10 text-center text-slate-400">
+                {{ loading() ? 'Cargando...' : error() ? 'No se pudieron cargar tus préstamos.' : 'Aún no tienes préstamos.' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

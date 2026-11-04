@@ -2,6 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { InventoryRow } from '../../../../admin/models/admin.models';
 import { InventoryService } from '../../../../admin/services/inventory.service';
 import { BookService } from '../../../../books/services/book.service';
+import { ToastService } from '../../../../shared/toast/toast.service';
+import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
 import { NewBookModalComponent } from './new-book-modal/new-book-modal.component';
 
 @Component({
@@ -12,6 +14,8 @@ import { NewBookModalComponent } from './new-book-modal/new-book-modal.component
 export class InventoryPageComponent {
   private inventoryService = inject(InventoryService);
   private bookService = inject(BookService);
+  private toast = inject(ToastService);
+  private confirmDialog = inject(ConfirmDialogService);
 
   books = signal<InventoryRow[]>([]);
   search = signal('');
@@ -38,11 +42,20 @@ export class InventoryPageComponent {
   }
 
   remove(book: InventoryRow) {
-    if (!confirm(`¿Dar de baja "${book.title}"?`)) return;
-    this.bookService.deleteBook(book._id).subscribe({
-      next: () => this.load(),
-      error: () => alert('No se pudo dar de baja el libro.'),
-    });
+    this.confirmDialog
+      .confirm({
+        title: 'Dar de baja',
+        message: `¿Dar de baja "${book.title}"?`,
+        confirmText: 'Dar de baja',
+        danger: true,
+      })
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.bookService.deleteBook(book._id).subscribe({
+          next: () => { this.toast.success('Libro dado de baja.'); this.load(); },
+          error: () => this.toast.error('No se pudo dar de baja el libro (¿tiene préstamos activos?).'),
+        });
+      });
   }
 
   openCreate() {
@@ -56,6 +69,7 @@ export class InventoryPageComponent {
   }
 
   onCreated() {
+    this.toast.success(this.editing() ? 'Libro actualizado.' : 'Libro registrado.');
     this.modalOpen.set(false);
     this.load();
   }
