@@ -20,6 +20,20 @@
   <div class="space-y-4">
     <p class="text-sm leading-relaxed">{{ book.description || 'Sin descripción disponible.' }}</p>
     <dl class="space-y-2 text-sm">
+      @if (stock(); as s) {
+        <div>
+          <dt class="font-semibold">Ejemplares físicos</dt>
+          <dd>
+            @if (s.total === 0) {
+              Sin ejemplares físicos
+            } @else {
+              <span [class.text-green-700]="s.available > 0" [class.text-red-600]="s.available === 0">
+                {{ s.available }} disponible(s) de {{ s.total }}
+              </span>
+            }
+          </dd>
+        </div>
+      }
       <div>
         <dt class="font-semibold">Categoría</dt>
         <dd>{{ book.categories }}</dd>

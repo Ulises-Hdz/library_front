@@ -1,16 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiBook } from '../../books/models/book.model';
-import { BookService } from '../../books/services/book.service';
 import { InventoryRow, PhysicalItem, PhysicalStock } from '../models/admin.models';
 
 // Ejemplares físicos y archivos digitales de cada libro.
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
   private http = inject(HttpClient);
-  private bookService = inject(BookService);
   private api = environment.baseUrl;
 
   getStock(bookId: string): Observable<PhysicalStock> {
@@ -51,18 +49,6 @@ export class InventoryService {
   }
 
   getInventory(): Observable<InventoryRow[]> {
-    return this.bookService.getBooks<ApiBook[]>({ limit: 1000 }).pipe(
-      switchMap((books) =>
-        books.length
-          ? forkJoin(
-              books.map((book) =>
-                forkJoin({ stock: this.getStock(book._id), digital: this.hasDigital(book._id) }).pipe(
-                  map((extra) => ({ ...book, ...extra }))
-                )
-              )
-            )
-          : of([])
-      )
-    );
+    return this.http.get<InventoryRow[]>(`${this.api}/books/inventory`);
   }
 }

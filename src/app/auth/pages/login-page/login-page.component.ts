@@ -45,6 +45,6 @@ export class LoginPageComponent  {
 
   private showError() {
     this.hasError = true;
-    setTimeout(() => (this.hasError = false), 2000);
+    setTimeout(() => (this.hasError = false), 4000);
   }
 }

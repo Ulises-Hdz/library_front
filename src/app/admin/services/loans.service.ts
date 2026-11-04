@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { Loan } from '../models/admin.models';
+import { Loan, MyLoan } from '../models/admin.models';
 
 @Injectable({ providedIn: 'root' })
 export class LoansService {
@@ -9,6 +9,10 @@ export class LoansService {
 
   getLoans() {
     return this.http.get<Loan[]>(`${environment.baseUrl}/loans`);
+  }
+
+  getMyLoans() {
+    return this.http.get<MyLoan[]>(`${environment.baseUrl}/loans/me`);
   }
 
   createLoan(user_id: string, physical_item_id: string) {
