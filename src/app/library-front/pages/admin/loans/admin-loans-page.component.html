@@ -63,53 +63,158 @@
 </div>
 
 @if (modalOpen()) {
-  <div class="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4">
+  <div class="fixed inset-0 z-[60] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <!-- Contenedor del Modal -->
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-      <header class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-        <h2 class="text-lg font-bold text-slate-800">Registrar préstamo manual</h2>
-        <button type="button" aria-label="Cerrar" class="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" [disabled]="saving()" (click)="modalOpen.set(false)">
+      
+      <!-- Cabecera -->
+      <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <h3 class="font-bold text-slate-800 text-lg">Registrar préstamo manual</h3>
+        <button type="button" aria-label="Cerrar" class="text-slate-400 hover:text-slate-600 transition-colors" [disabled]="saving()" (click)="modalOpen.set(false)">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
-      </header>
+      </div>
 
-      <div class="p-6">
-      <div class="flex flex-col gap-4">
-        <label class="flex flex-col">
-          <span class="form-label">Alumno</span>
-          <select class="form-input"
-                  [value]="selectedUser()" (change)="selectedUser.set($any($event.target).value)">
-            <option value="">Selecciona un alumno</option>
-            @for (u of students(); track u._id) {
-              <option [value]="u._id">{{ u.full_name }} — {{ u.email }}</option>
-            }
-          </select>
-        </label>
+      <!-- Cuerpo del Formulario -->
+      <div class="p-6 space-y-5">
+        
+        <!-- Buscador de Alumno -->
+        <div class="relative w-full">
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Alumno *</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <input 
+              type="text" 
+              placeholder="Buscar por matrícula o nombre..." 
+              class="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1E40AF] focus:border-[#1E40AF] outline-none text-sm transition-colors"
+              [value]="userSearchQuery()" 
+              (input)="userSearchQuery.set($any($event.target).value); showUserDropdown.set(true)"
+              (focus)="showUserDropdown.set(true)"
+              (blur)="onUserBlur()"
+            >
+          </div>
+          
+          <!-- Dropdown de estudiantes - FLOTANTE -->
+          @if (showUserDropdown() && filteredStudents().length > 0) {
+            <div class="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto">
+              @for (student of filteredStudents().slice(0, 10); track student._id) {
+                <button
+                  type="button"
+                  class="w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-blue-50 transition-colors flex flex-col gap-0.5"
+                  (click)="selectUser(student)">
+                  <span class="text-sm font-semibold text-slate-800">{{ student.full_name }}</span>
+                  <span class="text-xs text-slate-500">{{ student.email }}</span>
+                </button>
+              }
+            </div>
+          }
+          
+          <!-- Feedback contextual dinámico -->
+          @if (userStatus()) {
+            <p class="mt-2 text-xs text-slate-600 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full" [class.bg-green-500]="userStatus()!.active" [class.bg-amber-500]="!userStatus()!.active"></span>
+              <span>{{ userStatus()!.name }} — 
+                <span class="font-semibold" [class.text-green-600]="userStatus()!.active" [class.text-amber-600]="!userStatus()!.active">
+                  {{ userStatus()!.active ? 'Activo' : 'Sancionado' }} ({{ userStatus()!.loans }}/3 préstamos)
+                </span>
+              </span>
+            </p>
+          }
+        </div>
 
-        <label class="flex flex-col">
-          <span class="form-label">Libro</span>
-          <select class="form-input"
-                  [value]="selectedBook()" (change)="selectedBook.set($any($event.target).value)">
-            <option value="">Selecciona un libro</option>
-            @for (b of books(); track b._id) {
-              <option [value]="b._id">{{ b.title }} — {{ b.author }}</option>
-            }
-          </select>
-        </label>
+        <!-- Buscador de Libro -->
+        <div class="relative w-full">
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Libro *</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            </div>
+            <input 
+              type="text" 
+              placeholder="Buscar por ISBN o título..." 
+              class="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1E40AF] focus:border-[#1E40AF] outline-none text-sm transition-colors"
+              [value]="bookSearchQuery()" 
+              (input)="bookSearchQuery.set($any($event.target).value); showBookDropdown.set(true)"
+              (focus)="showBookDropdown.set(true)"
+              (blur)="onBookBlur()"
+            >
+          </div>
+
+          <!-- Dropdown de libros - FLOTANTE -->
+          @if (showBookDropdown() && filteredBooks().length > 0) {
+            <div class="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto">
+              @for (book of filteredBooks().slice(0, 10); track book._id) {
+                <button
+                  type="button"
+                  class="w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-blue-50 transition-colors flex flex-col gap-0.5"
+                  (click)="selectBook(book)">
+                  <span class="text-sm font-semibold text-slate-800">{{ book.title }}</span>
+                  <span class="text-xs text-slate-500">{{ book.author }} — ISBN: {{ book.isbn }}</span>
+                </button>
+              }
+            </div>
+          }
+          
+          <!-- Feedback contextual dinámico -->
+          @if (selectedBook()) {
+            <p class="mt-2 text-xs" [class.text-[#14B8A6]]="availableStock() > 0" [class.text-red-600]="availableStock() === 0" [class.font-medium]="true">
+              @if (availableStock() > 0) {
+                <span class="flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path></svg>
+                  {{ availableStock() }} {{ availableStock() === 1 ? 'ejemplar' : 'ejemplares' }} disponible{{ availableStock() === 1 ? '' : 's' }}
+                </span>
+              }
+              @if (availableStock() === 0) {
+                <span class="flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"></path></svg>
+                  Sin ejemplares disponibles
+                </span>
+              }
+            </p>
+          }
+        </div>
+
+        <!-- Resumen de Fechas (Tarjeta informativa) -->
+        @if (selectedBook()) {
+          <div class="bg-blue-50/50 border border-blue-100 rounded-lg p-3 flex justify-between items-center">
+            <div class="flex flex-col">
+              <span class="text-[10px] uppercase font-bold text-blue-800">Fecha de Devolución</span>
+              <span class="text-sm font-semibold text-blue-900">{{ dueDate() | date: 'dd \'de\' MMMM \'de\' yyyy' }}</span>
+            </div>
+            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          </div>
+        }
 
         @if (modalError()) {
           <p class="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{{ modalError() }}</p>
         }
       </div>
 
-      <div class="flex justify-end gap-2 mt-6">
-        <button (click)="modalOpen.set(false)" [disabled]="saving()"
-                class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">Cancelar</button>
-        <button (click)="saveManual()" [disabled]="!selectedUser() || !selectedBook() || saving()"
-                class="px-5 py-2 bg-[#1E40AF] text-white text-sm font-semibold rounded-lg hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-          {{ saving() ? 'Registrando...' : 'Registrar' }}
+      <!-- Pie del Modal (Acciones) -->
+      <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
+        <button 
+          type="button"
+          (click)="modalOpen.set(false)" 
+          [disabled]="saving()"
+          class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 transition-colors">
+          Cancelar
+        </button>
+        <button 
+          type="button"
+          (click)="saveManual()" 
+          [disabled]="!isFormValid() || saving()"
+          [class.bg-[#1E40AF]]="isFormValid()"
+          [class.hover:bg-blue-800]="isFormValid()"
+          [class.bg-slate-300]="!isFormValid()"
+          [class.cursor-not-allowed]="!isFormValid()"
+          class="px-5 py-2 text-sm font-bold text-white rounded-lg shadow-md transition-colors flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          {{ saving() ? 'Registrando...' : 'Confirmar Préstamo' }}
         </button>
       </div>
-      </div>
+      
     </div>
   </div>
 }

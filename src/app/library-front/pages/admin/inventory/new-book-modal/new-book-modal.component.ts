@@ -29,6 +29,13 @@ export class NewBookModalComponent implements OnInit {
   saving = signal(false);
   error = signal('');
 
+  // Signals para rastrear si los campos fueron tocados
+  isbnTouched = signal(false);
+  titleTouched = signal(false);
+  authorTouched = signal(false);
+  publisherTouched = signal(false);
+  categoriesTouched = signal(false);
+
   ngOnInit() {
     const book = this.book();
     if (!book) return;
@@ -40,7 +47,20 @@ export class NewBookModalComponent implements OnInit {
     this.description.set(book.description ?? '');
   }
 
-  step1Valid = computed(() => !!this.isbn().trim() && !!this.title().trim() && !!this.author().trim() && !!this.publisher().trim() && !!this.categories().trim());
+  isbnValid = computed(() => !!this.isbn().trim());
+  titleValid = computed(() => !!this.title().trim());
+  authorValid = computed(() => !!this.author().trim());
+  publisherValid = computed(() => !!this.publisher().trim());
+  categoriesValid = computed(() => !!this.categories().trim());
+
+  // Computeds para mostrar error: touched Y inválido
+  showIsbnError = computed(() => this.isbnTouched() && !this.isbnValid());
+  showTitleError = computed(() => this.titleTouched() && !this.titleValid());
+  showAuthorError = computed(() => this.authorTouched() && !this.authorValid());
+  showPublisherError = computed(() => this.publisherTouched() && !this.publisherValid());
+  showCategoriesError = computed(() => this.categoriesTouched() && !this.categoriesValid());
+
+  step1Valid = computed(() => this.isbnValid() && this.titleValid() && this.authorValid() && this.publisherValid() && this.categoriesValid());
   canSave = computed(() =>
     this.isDigital() ? !!this.file() : this.copies() >= 1
   );
@@ -53,6 +73,26 @@ export class NewBookModalComponent implements OnInit {
 
   onFileInput(event: Event) {
     this.setFile((event.target as HTMLInputElement).files?.[0] ?? null);
+  }
+
+  onIsbnBlur() {
+    this.isbnTouched.set(true);
+  }
+
+  onTitleBlur() {
+    this.titleTouched.set(true);
+  }
+
+  onAuthorBlur() {
+    this.authorTouched.set(true);
+  }
+
+  onPublisherBlur() {
+    this.publisherTouched.set(true);
+  }
+
+  onCategoriesBlur() {
+    this.categoriesTouched.set(true);
   }
 
   private setFile(file: File | null) {
