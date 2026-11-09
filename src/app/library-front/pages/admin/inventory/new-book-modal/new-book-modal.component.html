@@ -21,24 +21,24 @@
     @if (step() === 1) {
       <div class="grid grid-cols-2 gap-4">
         <div class="flex flex-col">
-          <label class="form-label">ISBN *</label>
-          <input class="form-input" [value]="isbn()" (input)="isbn.set($any($event.target).value)" />
+          <label class="form-label" [class.text-red-500]="showIsbnError()">ISBN *</label>
+          <input class="form-input" [class.border-red-500]="showIsbnError()" [value]="isbn()" (input)="isbn.set($any($event.target).value)" (blur)="onIsbnBlur()" />
         </div>
         <div class="flex flex-col">
-          <label class="form-label">Editorial *</label>
-          <input class="form-input" [value]="publisher()" (input)="publisher.set($any($event.target).value)" />
+          <label class="form-label" [class.text-red-500]="showPublisherError()">Editorial *</label>
+          <input class="form-input" [class.border-red-500]="showPublisherError()" [value]="publisher()" (input)="publisher.set($any($event.target).value)" (blur)="onPublisherBlur()" />
         </div>
         <div class="flex flex-col col-span-2">
-          <label class="form-label">Título *</label>
-          <input class="form-input" [value]="title()" (input)="title.set($any($event.target).value)" />
+          <label class="form-label" [class.text-red-500]="showTitleError()">Título *</label>
+          <input class="form-input" [class.border-red-500]="showTitleError()" [value]="title()" (input)="title.set($any($event.target).value)" (blur)="onTitleBlur()" />
         </div>
         <div class="flex flex-col">
-          <label class="form-label">Autor *</label>
-          <input class="form-input" [value]="author()" (input)="author.set($any($event.target).value)" />
+          <label class="form-label" [class.text-red-500]="showAuthorError()">Autor *</label>
+          <input class="form-input" [class.border-red-500]="showAuthorError()" [value]="author()" (input)="author.set($any($event.target).value)" (blur)="onAuthorBlur()" />
         </div>
         <div class="flex flex-col">
-          <label class="form-label">Categorías *</label>
-          <input class="form-input" placeholder="Separadas por coma" [value]="categories()" (input)="categories.set($any($event.target).value)" />
+          <label class="form-label" [class.text-red-500]="showCategoriesError()">Categorías *</label>
+          <input class="form-input" placeholder="Separadas por coma" [class.border-red-500]="showCategoriesError()" [value]="categories()" (input)="categories.set($any($event.target).value)" (blur)="onCategoriesBlur()" />
         </div>
         <div class="flex flex-col col-span-2">
           <label class="form-label">Sinopsis</label>
