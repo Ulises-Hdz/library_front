@@ -1,0 +1,31 @@
+/* PDF Reader specific styles */
+:host {
+  display: block;
+}
+
+/* Ensure the iframe is responsive */
+iframe {
+  border: none;
+}
+
+/* Header styling for PDF reader */
+.sticky {
+  top: 0;
+  z-index: 100;
+}
+
+/* Print-friendly styles */
+@media print {
+  .sticky {
+    position: static;
+    background: transparent;
+  }
+  
+  button {
+    display: none;
+  }
+  
+  iframe {
+    height: 100vh !important;
+  }
+}
