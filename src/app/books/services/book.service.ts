@@ -36,7 +36,7 @@ export class BookService {
   }
 
   getOneBook(id: string) {
-    return this.http.get<BookItem>(`${environment.baseUrl}/book/${id}`)
+    return this.http.get<BookItem>(`${environment.baseUrl}/books/${id}`)
   }
 
 }

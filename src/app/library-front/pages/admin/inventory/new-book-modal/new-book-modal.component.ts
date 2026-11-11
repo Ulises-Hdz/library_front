@@ -20,6 +20,7 @@ export class NewBookModalComponent implements OnInit {
   title = signal('');
   author = signal('');
   publisher = signal('');
+  year = signal('');
   categories = signal('');
   description = signal('');
   isDigital = signal(true);
@@ -34,6 +35,7 @@ export class NewBookModalComponent implements OnInit {
   titleTouched = signal(false);
   authorTouched = signal(false);
   publisherTouched = signal(false);
+  yearTouched = signal(false);
   categoriesTouched = signal(false);
 
   ngOnInit() {
@@ -43,6 +45,7 @@ export class NewBookModalComponent implements OnInit {
     this.title.set(book.title);
     this.author.set(book.author);
     this.publisher.set(book.publisher);
+    this.year.set(book.publicationYear?.toString() ?? '');
     this.categories.set((book.categories ?? []).join(', '));
     this.description.set(book.description ?? '');
   }
@@ -51,6 +54,13 @@ export class NewBookModalComponent implements OnInit {
   titleValid = computed(() => !!this.title().trim());
   authorValid = computed(() => !!this.author().trim());
   publisherValid = computed(() => !!this.publisher().trim());
+  yearValid = computed(() => {
+    const y = this.year().trim();
+    if (!y) return false;
+    const num = parseInt(y, 10);
+    const currentYear = new Date().getFullYear();
+    return num >= 1000 && num <= currentYear;
+  });
   categoriesValid = computed(() => !!this.categories().trim());
 
   // Computeds para mostrar error: touched Y inválido
@@ -58,9 +68,12 @@ export class NewBookModalComponent implements OnInit {
   showTitleError = computed(() => this.titleTouched() && !this.titleValid());
   showAuthorError = computed(() => this.authorTouched() && !this.authorValid());
   showPublisherError = computed(() => this.publisherTouched() && !this.publisherValid());
+  showYearError = computed(() => this.yearTouched() && !this.yearValid());
   showCategoriesError = computed(() => this.categoriesTouched() && !this.categoriesValid());
 
-  step1Valid = computed(() => this.isbnValid() && this.titleValid() && this.authorValid() && this.publisherValid() && this.categoriesValid());
+  step1Valid = computed(() => this.isbnValid() && this.titleValid() && this.authorValid() && this.publisherValid() && this.yearValid() && this.categoriesValid());
+  
+  currentYear = new Date().getFullYear();
   canSave = computed(() =>
     this.isDigital() ? !!this.file() : this.copies() >= 1
   );
@@ -91,6 +104,10 @@ export class NewBookModalComponent implements OnInit {
     this.publisherTouched.set(true);
   }
 
+  onYearBlur() {
+    this.yearTouched.set(true);
+  }
+
   onCategoriesBlur() {
     this.categoriesTouched.set(true);
   }
@@ -105,11 +122,13 @@ export class NewBookModalComponent implements OnInit {
   }
 
   private bookData() {
+    const yearNum = this.year().trim() ? parseInt(this.year().trim(), 10) : new Date().getFullYear();
     return {
       isbn: this.isbn().trim(),
       title: this.title().trim(),
       author: this.author().trim(),
       publisher: this.publisher().trim(),
+      publicationYear: yearNum,
       categories: this.categories().split(',').map((c) => c.trim()).filter(Boolean),
       description: this.description().trim(),
     };

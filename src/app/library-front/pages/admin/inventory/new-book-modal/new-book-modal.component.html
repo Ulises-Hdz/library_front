@@ -19,30 +19,45 @@
 
     <div class="p-6">
     @if (step() === 1) {
-      <div class="grid grid-cols-2 gap-4">
+      <div class="space-y-4">
+        <!-- Fila 1: Título (Full Width) -->
         <div class="flex flex-col">
-          <label class="form-label" [class.text-red-500]="showIsbnError()">ISBN *</label>
-          <input class="form-input" [class.border-red-500]="showIsbnError()" [value]="isbn()" (input)="isbn.set($any($event.target).value)" (blur)="onIsbnBlur()" />
-        </div>
-        <div class="flex flex-col">
-          <label class="form-label" [class.text-red-500]="showPublisherError()">Editorial *</label>
-          <input class="form-input" [class.border-red-500]="showPublisherError()" [value]="publisher()" (input)="publisher.set($any($event.target).value)" (blur)="onPublisherBlur()" />
-        </div>
-        <div class="flex flex-col col-span-2">
           <label class="form-label" [class.text-red-500]="showTitleError()">Título *</label>
-          <input class="form-input" [class.border-red-500]="showTitleError()" [value]="title()" (input)="title.set($any($event.target).value)" (blur)="onTitleBlur()" />
+          <input class="form-input" [class.border-red-500]="showTitleError()" [value]="title()" (input)="title.set($any($event.target).value)" (blur)="onTitleBlur()" placeholder="Ej. Ingeniería de Software" />
         </div>
+
+        <!-- Fila 2: Autor (50%) y Categorías (50%) -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col">
+            <label class="form-label" [class.text-red-500]="showAuthorError()">Autor *</label>
+            <input class="form-input" [class.border-red-500]="showAuthorError()" [value]="author()" (input)="author.set($any($event.target).value)" (blur)="onAuthorBlur()" placeholder="Ej. Roger S. Pressman" />
+          </div>
+          <div class="flex flex-col">
+            <label class="form-label" [class.text-red-500]="showCategoriesError()">Categorías *</label>
+            <input class="form-input" placeholder="Separadas por coma" [class.border-red-500]="showCategoriesError()" [value]="categories()" (input)="categories.set($any($event.target).value)" (blur)="onCategoriesBlur()" />
+          </div>
+        </div>
+
+        <!-- Fila 3: ISBN (40%), Editorial (40%), Año (20%) -->
+        <div class="grid grid-cols-12 gap-3">
+          <div class="col-span-5 flex flex-col">
+            <label class="form-label" [class.text-red-500]="showIsbnError()">ISBN *</label>
+            <input class="form-input" [class.border-red-500]="showIsbnError()" [value]="isbn()" (input)="isbn.set($any($event.target).value)" (blur)="onIsbnBlur()" placeholder="978-0-13-467094-2" />
+          </div>
+          <div class="col-span-4 flex flex-col">
+            <label class="form-label" [class.text-red-500]="showPublisherError()">Editorial *</label>
+            <input class="form-input" [class.border-red-500]="showPublisherError()" [value]="publisher()" (input)="publisher.set($any($event.target).value)" (blur)="onPublisherBlur()" placeholder="McGraw-Hill" />
+          </div>
+          <div class="col-span-3 flex flex-col">
+            <label class="form-label" [class.text-red-500]="showYearError()">Año *</label>
+            <input type="number" class="form-input text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" [class.border-red-500]="showYearError()" [value]="year()" (input)="year.set($any($event.target).value)" (blur)="onYearBlur()" min="1500" [max]="currentYear" maxlength="4" placeholder="2024" />
+          </div>
+        </div>
+
+        <!-- Fila 4: Sinopsis (Full Width) -->
         <div class="flex flex-col">
-          <label class="form-label" [class.text-red-500]="showAuthorError()">Autor *</label>
-          <input class="form-input" [class.border-red-500]="showAuthorError()" [value]="author()" (input)="author.set($any($event.target).value)" (blur)="onAuthorBlur()" />
-        </div>
-        <div class="flex flex-col">
-          <label class="form-label" [class.text-red-500]="showCategoriesError()">Categorías *</label>
-          <input class="form-input" placeholder="Separadas por coma" [class.border-red-500]="showCategoriesError()" [value]="categories()" (input)="categories.set($any($event.target).value)" (blur)="onCategoriesBlur()" />
-        </div>
-        <div class="flex flex-col col-span-2">
           <label class="form-label">Sinopsis</label>
-          <textarea class="form-input" rows="3" [value]="description()" (input)="description.set($any($event.target).value)"></textarea>
+          <textarea class="form-input" rows="3" [value]="description()" (input)="description.set($any($event.target).value)" placeholder="Resumen del contenido del libro..."></textarea>
         </div>
       </div>
       @if (book() && error()) {

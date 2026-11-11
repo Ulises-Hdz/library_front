@@ -17,6 +17,7 @@ export interface ApiBook {
   title: string;
   author: string;
   publisher: string;
+  publicationYear?: number;
   categories: string[];
   description?: string;
 }
@@ -26,6 +27,7 @@ export interface NewBook {
   title: string;
   author: string;
   publisher: string;
+  publicationYear: number;
   categories: string[];
   description?: string;
 }

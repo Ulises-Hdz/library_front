@@ -37,7 +37,7 @@ export class InventoryService {
   // El archivo digital solo se consulta por cabeceras (HEAD) para saber si existe.
   hasDigital(bookId: string): Observable<boolean> {
     return this.http
-      .head(`${this.api}/digital-resources/book/${bookId}`, { observe: 'response' })
+      .get(`${this.api}/digital-resources/book/${bookId}`, { observe: 'response', responseType: 'blob' })
       .pipe(map(() => true), catchError(() => of(false)));
   }
 
@@ -46,6 +46,15 @@ export class InventoryService {
     form.append('file', file);
     form.append('book_id', bookId);
     return this.http.post(`${this.api}/digital-resources`, form);
+  }
+
+  getPDFDigital(book_id: string): Observable<Blob> {
+    return this.http.get(`${this.api}/digital-resources/book/${book_id}`, { responseType: 'blob' }).pipe(
+      catchError((err) => {
+        console.error('Error al obtener PDF:', err);
+        return of(new Blob());
+      })
+    );
   }
 
   getInventory(): Observable<InventoryRow[]> {

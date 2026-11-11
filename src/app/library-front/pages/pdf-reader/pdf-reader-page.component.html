@@ -1,0 +1,68 @@
+<div class="min-h-screen bg-slate-900">
+  <!-- Header Optimizado -->
+  <div class="sticky top-0 z-10 bg-slate-800 shadow-md border-b border-slate-700">
+    <div class="px-6 py-4 flex items-center justify-between">
+      <!-- Izquierda: Retroceso y Metadatos -->
+      <div class="flex items-center gap-4 flex-1">
+        <button (click)="goBack()" class="p-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-colors" aria-label="Volver">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          </svg>
+        </button>
+        @if (book(); as b) {
+          <div class="min-w-0">
+            <h1 class="text-lg font-bold text-white truncate">{{ b.title }}</h1>
+            <p class="text-xs text-slate-400">{{ b.author }}</p>
+          </div>
+        }
+      </div>
+
+      <!-- Derecha: Botón Descargar -->
+      @if (pdfUrl()) {
+        <button (click)="downloadPDF()" class="ml-4 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          <span class="hidden sm:inline">Descargar</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Contenedor del Visor -->
+  <div class="w-full min-h-[calc(100vh-73px)] px-6 py-8 flex justify-center items-start">
+    @if (isLoading()) {
+      <div class="flex justify-center items-center min-h-[60vh] w-full" role="status" aria-label="Cargando PDF">
+        <span class="loading loading-spinner loading-xl text-teal-500"></span>
+      </div>
+    } @else if (error()) {
+      <div class="alert alert-error shadow-lg w-full max-w-2xl">
+        <div>
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l-2-2m0 0l-2-2m2 2l2-2m-2 2l-2 2m2-2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <span>{{ error() }}</span>
+        </div>
+        <div class="flex-none">
+          <button (click)="goBack()" class="btn btn-sm">Volver</button>
+        </div>
+      </div>
+    } @else if (pdfUrl(); as url) {
+      <div class="w-full max-w-5xl h-[75vh] bg-white rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
+        <iframe
+          [src]="url"
+          class="w-full h-full"
+          frameborder="0"
+          allowfullscreen
+          title="PDF Reader">
+        </iframe>
+      </div>
+    } @else {
+      <div class="alert alert-warning shadow-lg w-full max-w-2xl">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0 6V9m7.08-6a9 9 0 11-18.16 0A9 9 0 0113.08 3z" /></svg>
+        <span>No hay PDF disponible para este libro.</span>
+        <div class="flex-none">
+          <button (click)="goBack()" class="btn btn-sm">Volver</button>
+        </div>
+      </div>
+    }
+  </div>
+</div>
