@@ -3,10 +3,12 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { BookService } from '../../services/book.service';
 import { BookModalComponent } from '../../../library-front/pages/books-page/components/book-modal/book-modal.component';
 import { BookItem } from '../../models/book.model';
+import { BookCoverComponent } from '../book-cover/book-cover.component';
 
 @Component({
   selector: 'app-books-carousel',
   templateUrl: './books-carousel.component.html',
+  imports: [BookCoverComponent],
 })
 export class CarrouselBooksComponent implements OnInit {
 

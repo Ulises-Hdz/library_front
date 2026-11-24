@@ -2,10 +2,12 @@ import { Component, inject, input } from '@angular/core';
 import { Dialog } from '@angular/cdk/dialog';
 import { BookModalComponent } from '../../../library-front/pages/books-page/components/book-modal/book-modal.component';
 import { BookItem } from '../../models/book.model';
+import { BookCoverComponent } from '../book-cover/book-cover.component';
 
 @Component({
   selector: 'app-book-card',
   templateUrl: './book-card.component.html',
+  imports: [BookCoverComponent],
 })
 export class BookCardComponent {
 

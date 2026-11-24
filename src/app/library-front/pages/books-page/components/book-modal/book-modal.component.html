@@ -9,13 +9,11 @@
 </div>
 
 <div class="grid max-h-[70vh] grid-cols-1 gap-6 overflow-y-auto p-5 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-  @if (book.coverUrl) {
-    <img class="mx-auto max-h-80 w-full rounded-lg object-contain" [src]="book.coverUrl" [alt]="'Portada de ' + book.title" />
-  } @else {
-    <div class="flex min-h-48 items-center justify-center rounded-lg bg-base-200 text-sm text-base-content/60">
-      Sin portada disponible
-    </div>
-  }
+  <app-book-cover
+    class="mx-auto min-h-48 max-h-80 overflow-hidden rounded-lg"
+    [bookId]="book._id"
+    [alt]="'Portada de ' + book.title"
+    fit="contain" />
 
   <div class="space-y-4">
     <p class="text-sm leading-relaxed">{{ book.description || 'Sin descripción disponible.' }}</p>

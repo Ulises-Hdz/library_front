@@ -2,10 +2,12 @@ import { Component, computed, inject, input, OnInit, output, signal } from '@ang
 import { InventoryRow } from '../../../../../admin/models/admin.models';
 import { InventoryService } from '../../../../../admin/services/inventory.service';
 import { BookService } from '../../../../../books/services/book.service';
+import { BookCoverComponent } from '../../../../../books/components/book-cover/book-cover.component';
 
 @Component({
   selector: 'app-new-book-modal',
   templateUrl: './new-book-modal.component.html',
+  imports: [BookCoverComponent],
 })
 export class NewBookModalComponent implements OnInit {
   private bookService = inject(BookService);
@@ -26,6 +28,8 @@ export class NewBookModalComponent implements OnInit {
   isDigital = signal(true);
   copies = signal(1);
   file = signal<File | null>(null);
+  coverImage = signal<File | null>(null);
+  coverPreview = signal<string>('');
   dragging = signal(false);
   saving = signal(false);
   error = signal('');
@@ -88,6 +92,15 @@ export class NewBookModalComponent implements OnInit {
     this.setFile((event.target as HTMLInputElement).files?.[0] ?? null);
   }
 
+  onCoverImageInput(event: Event) {
+    this.setCoverImage((event.target as HTMLInputElement).files?.[0] ?? null);
+  }
+
+  onCoverImageDrop(event: DragEvent) {
+    event.preventDefault();
+    this.setCoverImage(event.dataTransfer?.files?.[0] ?? null);
+  }
+
   onIsbnBlur() {
     this.isbnTouched.set(true);
   }
@@ -121,6 +134,39 @@ export class NewBookModalComponent implements OnInit {
     this.file.set(file);
   }
 
+  private setCoverImage(file: File | null) {
+    if (!file) {
+      this.coverImage.set(null);
+      this.coverPreview.set('');
+      this.error.set('');
+      return;
+    }
+
+    if (!/\.(jpg|jpeg|png|webp)$/i.test(file.name)) {
+      this.error.set('Solo se permiten imágenes JPG, PNG o WEBP para la portada.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.error.set('La imagen no debe superar 5MB.');
+      return;
+    }
+
+    this.error.set('');
+    this.coverImage.set(file);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.coverPreview.set(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeCoverImage() {
+    this.coverImage.set(null);
+    this.coverPreview.set('');
+  }
+
   private bookData() {
     const yearNum = this.year().trim() ? parseInt(this.year().trim(), 10) : new Date().getFullYear();
     return {
@@ -139,8 +185,21 @@ export class NewBookModalComponent implements OnInit {
     if (!book) return;
     this.saving.set(true);
     this.error.set('');
+
+    const coverImage = this.coverImage();
+    const done = () => this.created.emit();
+
     this.bookService.updateBook(book._id, this.bookData()).subscribe({
-      next: () => this.created.emit(),
+      next: () => {
+        if (coverImage) {
+          this.inventoryService.uploadCoverImage(book._id, coverImage).subscribe({
+            next: () => done(),
+            error: () => this.fail('El libro se actualizó, pero falló la subida de la portada.'),
+          });
+        } else {
+          done();
+        }
+      },
       error: () => this.fail('No se pudo actualizar el libro (¿ISBN duplicado?).'),
     });
   }
@@ -149,20 +208,37 @@ export class NewBookModalComponent implements OnInit {
     this.saving.set(true);
     this.error.set('');
     const digital = this.isDigital();
+    const coverImage = this.coverImage();
 
     this.bookService.createBook(this.bookData()).subscribe({
       next: (book) => {
         const file = this.file();
-        const done = { next: () => this.created.emit() };
-        if (digital && file) {
-          this.inventoryService.uploadDigital(book._id, file).subscribe({
-            ...done,
-            error: () => this.fail('El libro se registró, pero falló la subida del archivo.'),
+        const done = () => this.created.emit();
+
+        // Subir portada si existe
+        const coverUpload = coverImage
+          ? this.inventoryService.uploadCoverImage(book._id, coverImage)
+          : null;
+
+        // Subir contenido digital o ejemplares físicos
+        const contentUpload = digital && file
+          ? this.inventoryService.uploadDigital(book._id, file)
+          : this.inventoryService.addPhysicalCopies(book, this.copies());
+
+        if (coverUpload) {
+          coverUpload.subscribe({
+            next: () => {
+              contentUpload.subscribe({
+                next: () => done(),
+                error: () => this.fail('El libro se registró, pero falló la subida del contenido.'),
+              });
+            },
+            error: () => this.fail('El libro se registró, pero falló la subida de la portada.'),
           });
         } else {
-          this.inventoryService.addPhysicalCopies(book, this.copies()).subscribe({
-            ...done,
-            error: () => this.fail('El libro se registró, pero falló el alta de ejemplares.'),
+          contentUpload.subscribe({
+            next: () => done(),
+            error: () => this.fail('El libro se registró, pero falló la subida del contenido.'),
           });
         }
       },

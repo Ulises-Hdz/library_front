@@ -1,0 +1,20 @@
+@if (coverUrl(); as url) {
+  <img
+    [src]="url"
+    [alt]="alt()"
+    [class]="'h-full w-full ' + (fit() === 'contain' ? 'object-contain ' : 'object-cover ') + imageClass()"
+    loading="lazy" />
+} @else if (status() === 'loading') {
+  <div class="flex h-full min-h-16 w-full animate-pulse items-center justify-center bg-base-200" aria-label="Cargando portada">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="h-10 w-10 text-base-content/20">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+    </svg>
+  </div>
+} @else {
+  <div class="flex h-full min-h-16 w-full flex-col items-center justify-center gap-2 bg-base-200 p-3 text-base-content/40">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="h-12 w-12">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+    </svg>
+    <span class="text-center text-xs">Sin portada</span>
+  </div>
+}

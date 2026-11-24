@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment';
 import { ApiBook } from '../../books/models/book.model';
 import { InventoryRow, PhysicalItem, PhysicalStock } from '../models/admin.models';
 
-// Ejemplares físicos y archivos digitales de cada libro.
+// Ejemplares físicos, archivos digitales y portadas de cada libro.
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
   private http = inject(HttpClient);
@@ -46,6 +46,16 @@ export class InventoryService {
     form.append('file', file);
     form.append('book_id', bookId);
     return this.http.post(`${this.api}/digital-resources`, form);
+  }
+
+  uploadCoverImage(bookId: string, file: File) {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post(`${this.api}/books/${bookId}/cover`, form);
+  }
+
+  getCoverImage(bookId: string): Observable<Blob> {
+    return this.http.get(`${this.api}/books/${bookId}/cover`, { responseType: 'blob' });
   }
 
   getPDFDigital(book_id: string): Observable<Blob> {
