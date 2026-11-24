@@ -6,7 +6,7 @@ export interface BookItem {
   publisher: string;
   publicationYear: number;
   categories: string;
-  coverUrl: string;
+  coverUrl?: string;
   description: string;
 }
 
@@ -20,6 +20,7 @@ export interface ApiBook {
   publicationYear?: number;
   categories: string[];
   description?: string;
+  coverUrl?: string;
 }
 
 export interface NewBook {

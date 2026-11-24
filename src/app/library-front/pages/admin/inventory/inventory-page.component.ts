@@ -5,11 +5,12 @@ import { BookService } from '../../../../books/services/book.service';
 import { ToastService } from '../../../../shared/toast/toast.service';
 import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
 import { NewBookModalComponent } from './new-book-modal/new-book-modal.component';
+import { BookCoverComponent } from '../../../../books/components/book-cover/book-cover.component';
 
 @Component({
   selector: 'app-inventory-page',
   templateUrl: './inventory-page.component.html',
-  imports: [NewBookModalComponent],
+  imports: [BookCoverComponent, NewBookModalComponent],
 })
 export class InventoryPageComponent {
   private inventoryService = inject(InventoryService);

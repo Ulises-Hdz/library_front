@@ -5,11 +5,13 @@ import { BookItem } from '../../../../../books/models/book.model';
 import { InventoryService } from '../../../../../admin/services/inventory.service';
 import { AuthService } from '../../../../../auth/services/auth.service';
 import { PhysicalStock } from '../../../../../admin/models/admin.models';
+import { BookCoverComponent } from '../../../../../books/components/book-cover/book-cover.component';
 
 
 @Component({
   selector: 'app-book-modal',
   templateUrl: './book-modal.component.html',
+  imports: [BookCoverComponent],
   host: {
     class: 'block overflow-hidden rounded-2xl bg-base-100 text-base-content shadow-2xl',
     role: 'dialog',
