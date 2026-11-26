@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, formatDate } from '@angular/common';
 import { ApiBook } from '../../../../books/models/book.model';
 import { BookService } from '../../../../books/services/book.service';
 import { Loan } from '../../../../admin/models/admin.models';
@@ -35,6 +35,7 @@ export class AdminLoansPageComponent {
   showUserDropdown = signal(false);
   showBookDropdown = signal(false);
   availableStock = signal(0);
+  dueDate = signal(new Date());
 
   students = computed(() => this.users().filter((u) => u.role !== 'ADMIN' && u.status !== 'BLOCKED'));
 
@@ -60,12 +61,12 @@ export class AdminLoansPageComponent {
     );
   });
 
-  // Fecha de devolución (14 días)
-  dueDate = computed(() => {
+  // Misma regla que el backend: 7 días naturales.
+  private createDueDate() {
     const date = new Date();
-    date.setDate(date.getDate() + 14);
+    date.setDate(date.getDate() + 7);
     return date;
-  });
+  }
 
   // Validación del formulario
   isFormValid = computed(() => !!this.selectedUser() && !!this.selectedBook() && this.availableStock() > 0);
@@ -115,6 +116,7 @@ export class AdminLoansPageComponent {
     this.modalError.set('');
     this.showUserDropdown.set(false);
     this.showBookDropdown.set(false);
+    this.dueDate.set(this.createDueDate());
     this.modalOpen.set(true);
   }
 
@@ -162,10 +164,11 @@ export class AdminLoansPageComponent {
           return;
         }
         this.loansService.createLoan(userId, items[0]._id).subscribe({
-          next: () => {
+          next: (loan) => {
             this.saving.set(false);
             this.modalOpen.set(false);
-            this.message.set({ ok: true, text: `Préstamo registrado para ${this.selectedUser()?.full_name}.` });
+            const due = formatDate(loan.dueDate, "d 'de' MMMM 'de' y", 'es-MX');
+            this.message.set({ ok: true, text: `Préstamo registrado para ${this.selectedUser()?.full_name}. Devolución: ${due}.` });
             this.load();
           },
           error: (e) => this.failModal(e.error?.message ?? 'No se pudo registrar el préstamo.'),

@@ -24,6 +24,20 @@
   --color-error-content: #ffffff;
 }
 
+button:not(:disabled) {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+button:not(:disabled):active {
+  filter: brightness(0.96);
+  transform: translateY(1px) scale(0.98);
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 @layer components {
   .form-label {
     @apply block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1;
