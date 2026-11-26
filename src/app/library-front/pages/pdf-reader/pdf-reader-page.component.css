@@ -3,9 +3,14 @@
   display: block;
 }
 
-/* Ensure the iframe is responsive */
-iframe {
-  border: none;
+.pdf-viewer {
+  height: calc(100vh - 137px);
+  min-height: 650px;
+}
+
+.pdf-viewer object {
+  border: 0;
+  height: 100%;
 }
 
 /* Header styling for PDF reader */
@@ -25,7 +30,12 @@ iframe {
     display: none;
   }
   
-  iframe {
+  .pdf-viewer {
+    height: 100vh;
+    min-height: 0;
+  }
+
+  .pdf-viewer object {
     height: 100vh !important;
   }
 }

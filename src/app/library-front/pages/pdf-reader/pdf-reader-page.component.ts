@@ -1,5 +1,6 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfReaderService } from '../../../books/services/pdf-reader.service';
 import { BookService } from '../../../books/services/book.service';
 import { BookItem } from '../../../books/models/book.model';
@@ -13,14 +14,16 @@ import { EMPTY, catchError } from 'rxjs';
   templateUrl: './pdf-reader-page.component.html',
   styleUrls: ['./pdf-reader-page.component.css'],
 })
-export class PdfReaderPageComponent implements OnInit {
+export class PdfReaderPageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly sanitizer = inject(DomSanitizer);
   private readonly pdfReaderService = inject(PdfReaderService);
   private readonly bookService = inject(BookService);
+  private objectUrl = '';
 
   book = signal<BookItem | null>(null);
-  pdfUrl = signal<string>('');
+  pdfUrl = signal<SafeResourceUrl | null>(null);
   pdfBlob = signal<Blob | null>(null);
   isLoading = signal(true);
   error = signal<string>('');
@@ -54,10 +57,14 @@ export class PdfReaderPageComponent implements OnInit {
         })
       ).subscribe((blob) => {
         if (blob && blob.size > 0) {
-          this.pdfBlob.set(blob);
-          // Crear URL desde el Blob
-          const url = URL.createObjectURL(blob);
-          this.pdfUrl.set(url);
+          const pdfBlob = blob.type === 'application/pdf'
+            ? blob
+            : new Blob([blob], { type: 'application/pdf' });
+
+          this.pdfBlob.set(pdfBlob);
+          this.objectUrl = URL.createObjectURL(pdfBlob);
+          const viewerUrl = `${this.objectUrl}#toolbar=1&navpanes=1&view=FitH`;
+          this.pdfUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl));
         } else {
           this.error.set('No hay PDF disponible para este libro.');
         }
@@ -70,17 +77,9 @@ export class PdfReaderPageComponent implements OnInit {
     this.router.navigate(['/books']);
   }
 
-  downloadPDF() {
-    const blob = this.pdfBlob();
-    if (blob && blob.size > 0) {
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${this.book()?.title || 'libro'}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+  ngOnDestroy() {
+    if (this.objectUrl) {
+      URL.revokeObjectURL(this.objectUrl);
     }
   }
 }
